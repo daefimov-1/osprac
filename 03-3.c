@@ -8,13 +8,15 @@ int main(int argc, char *argv[], char *envp[])
   printf("length of arr = %d", argc);
   printf("\nargv elements:");
   for(int i = 0; i < argc; i++){       
-    puts(argv[i]);
-    
+    puts(argv[i]); 
+    printf("\n");   
   }
+  printf("\n");
+  
   printf("\nenvp elements:");
-  for(int i = 0; i < argc; i++){    
-    puts(envp[i]);
-    
-  }
+  int i = 0;
+  while (envp[i] != NULL)
+    printf("%s\n", envp[i++]);
+  printf("\n");
   
 }
