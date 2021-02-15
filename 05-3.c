@@ -3,65 +3,81 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void reverse(char* str, size_t sz);
+
 int main()
 {
-  int     fd[2], result;
-
+  int pipe_parent[2]; //array of parents
+  int pipe_child[2]; //array of childs
+  int result;
   size_t size;
-  char  resstring[14];
+  char resstring[14];
 
-  if (pipe(fd) < 0) {
-    printf("Can\'t open pipe\n");
+ 
+  if (pipe(pipe_child) < 0) {
+    printf("Can\'t create child pipe\n");
+    exit(-1);
+  }
+
+  if (pipe(pipe_parent) < 0) {
+    printf("Can\'t create parent pipe\n");
     exit(-1);
   }
 
   result = fork();
-
   if (result < 0) {
+    printf("result < 0\n");
     printf("Can\'t fork child\n");
+    printf("Exit out of program\n");
     exit(-1);
   } else if (result > 0) {
-
-   /* Parent process */
-
-    if (close(fd[0]) < 0) {
-      printf("parent: Can\'t close reading side of pipe\n"); exit(-1);
-    }
-
-    size = write(fd[1], "Hello, world!", 14);
-
+    printf("it is parent\n");
+    close(pipe_parent[0]); 
+    close(pipe_child[1]);
+    size = write(pipe_parent[1], "Hello, world!", 14);
     if (size != 14) {
-      printf("Can\'t write all string to pipe\n");
+      printf("size != 14\n");
+      printf("Can\'t write all string\n");
+      printf("Exit out of program\n");
       exit(-1);
     }
+    close(pipe_parent[1]);
 
-    if (close(fd[1]) < 0) {
-      printf("parent: Can\'t close writing side of pipe\n"); exit(-1);
+    size = read(pipe_child[0], resstring, 14);
+    if (size != 14) {
+      printf("size != 14\n");
+      printf("Can\'t read from child\n");
+      printf("Exit out of program\n");
+      exit(-1);
     }
-
-    printf("Parent exit\n");
-
-  } else {
-
-    /* Child process */
-
-    if (close(fd[1]) < 0) {
-      printf("child: Can\'t close writing side of pipe\n"); exit(-1);
-    }
-
-    size = read(fd[0], resstring, 14);
-
+    printf("Parent tooken out of child: %s\n", resstring);
+    printf("Exit out of parent\n");
+  } else {    
+    close(pipe_parent[1]);
+    close(pipe_child[0]);
+    size = read(pipe_parent[0], resstring, 14);
     if (size < 0) {
-      printf("Can\'t read string from pipe\n");
+      printf("size < 0\n");
+      printf("Can\'t get from parent\n");
+      printf("Exit out of program\n");
       exit(-1);
     }
-
-    printf("Child exit, resstring:%s\n", resstring);
-
-    if (close(fd[0]) < 0) {
-      printf("child: Can\'t close reading side of pipe\n"); exit(-1);
-    }
+    printf("Tooken out of parent: %s\n", resstring);
+    reverse(resstring, 13);
+    size = write(pipe_child[1], resstring, 14);
+    close(pipe_parent[0]);
+    printf("Exit out of child\n");
   }
-
   return 0;
 }
+
+void reverse(char* str, size_t sz)
+{
+  printf("Reverse is in process\n");
+  for (int i = 0; i < sz / 2; i++) {
+    char t = str[i];
+    str[i] = str[sz - i - 1];
+    str[sz - i - 1] = t;
+  }
+}
+
