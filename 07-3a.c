@@ -7,21 +7,6 @@
 #include <stdlib.h>
 
 
-int P(int semid, struct sembuf *buf) {
-    buf->sem_op = -1;
-    buf->sem_flg = 0;
-    buf->sem_num = 0;
-
-    return semop(semid, buf, 1);
-}
-
-int V(int semid, struct sembuf *buf) {
-    buf->sem_op = 1;
-    buf->sem_flg = 0;
-    buf->sem_num = 0;
-
-    return semop(semid, buf, 1);
-}
 
 int main()
 {
@@ -31,8 +16,17 @@ int main()
   int     shmid;
   int     new = 1;
   char    pathname[] = "07-3a.c";
-  key_t   key;
+  key_t   key, key2;
   long    i;
+
+  if ((key2 = ftok(pathname,0)) < 0) {
+    printf("Can\'t generate key\n");
+    exit(-1);
+  }
+  if ((semid = semget(key2, 1, 0666 | IPC_CREAT)) < 0) {
+    printf("Can\'t create semaphore\n");
+    exit(-1);
+  }
 
   if ((key = ftok(pathname,0)) < 0) {
     printf("Can\'t generate key\n");
@@ -57,26 +51,20 @@ int main()
     exit(-1);
   }
 
-  if ((semid = semget(key, 1, 0666)) < 0) {
-    printf("Semaphore not found. Trying to create...\n");
-    if ((semid = semget(key, 1, 0666 | IPC_CREAT)) < 0) {
-       printf("Can\'t get semid\n");
-       exit(-1);
-    }
-    printf("Create successful!\n");
-    V(semid, &mybuf);
-}
-
+  mybuf.sem_num = 0;
+  mybuf.sem_op  = -1;
+  mybuf.sem_flg = 0;
+  if (semop(semid, &mybuf, 1) < 0) {
+        exit(-1);
+  }
   if (new) {
     array[0] =  1;
     array[1] =  0;
     array[2] =  1;
   } else {
-    P(semid, &mybuf);
     array[0] += 1;
     for(i=0; i<2000000000L; i++);
     array[2] += 1;
-    V(semid, &mybuf);
   }
 
   printf("Program 1 was spawn %d times, program 2 - %d times, total - %d times\n",
@@ -86,6 +74,12 @@ int main()
     printf("Can't detach shared memory\n");
     exit(-1);
   }
-
+  
+  mybuf.sem_num = 0;
+  mybuf.sem_op  = -1;
+  mybuf.sem_flg = 0;
+  if (semop(semid, &mybuf, 1) < 0) {
+      exit(-1);
+  }
   return 0;
 }
