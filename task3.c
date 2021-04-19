@@ -5,6 +5,29 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 
+/*
+In this task, synchronization is implemented as follows.
+
+First step:
+At the beginning of program execution, we initialize the value 1 through sem_op.
+
+Second step:
+Working with Parent:
+D(0, 1) -> In the cycle, sequentially occurs:
+1)write
+2)A(0, 1)
+3)Z
+4)D(0, 1)
+5)read
+
+Third step:
+Working with Child:
+In the cycle, sequentially occurs:
+1)D(0, 2)
+2)read
+3)write
+4)A(0, 1)
+*/
 int main()
 {    
     struct  sembuf mybuf;         
