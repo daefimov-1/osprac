@@ -18,7 +18,10 @@ int main(void)
   struct mymsgbuf // Custom structure for the message
   {
     long mtype;
-    char mtext[81];
+    struct {
+        int mymessage;
+        char mtext[81];
+    } info;
   } mybuf;
 
   if ((key = ftok(pathname,0)) < 0) {
@@ -42,8 +45,9 @@ int main(void)
     // determine the length of the informative part.
     //
     mybuf.mtype = 1;
-    strcpy(mybuf.mtext, "This is text message");
-    len = strlen(mybuf.mtext)+1;
+    mybuf.info.mymessage = i;
+    strcpy(mybuf.info.mtext, "This is text message");
+    len = sizeof(mybuf.info);
     //
     // Send the message. If there is an error,
     // report it and delete the message queue from the system.
