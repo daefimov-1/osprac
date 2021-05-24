@@ -17,7 +17,7 @@ void addnum(char* s, int index) {
 int main()
 {
     int     fd;
-    char    fileName[] = "task.c";
+    char    fileName[] = "aa";
     char    symlinkName[] = "test/aa";
     (void) umask(0);
 
